@@ -60,27 +60,28 @@ async function searchInProject(project, search) {
 				console.log(' > Already processed');
 				continue;
 			}
-			else {
-				searchResults[project.id] = searchResults[project.id] || {
-					id: project.id,
-					name: project.name_with_namespace,
-					chunks: [],
-				}
-				await new Promise(resolve => setTimeout(resolve, 6000));
 
-				let filter = [process.env.SEARCH_KEYWORD]
-				if (process.env.SEARCH_FILE_EXTENSION)
-					filter.push('filename:*.' + process.env.SEARCH_FILE_EXTENSION);
-
-				let results = await searchInProject(project, filter.join(' '));
-				for (let k = 0; k < results.length; k++) {
-					let element = results[k];
-					console.log('+ ' + element.path);
-					element.data = element.data.replace("\t", "  ").split("\n");
-					searchResults[project.id].chunks.push(element);
-				}
-				fs.writeFileSync(resultFile, JSON.stringify(searchResults, null, 2));
+			searchResults[project.id] = searchResults[project.id] || {
+				id: project.id,
+				name: project.name_with_namespace,
+				chunks: [],
 			}
+			await new Promise(resolve => setTimeout(resolve, 6000));
+
+			let filter = [process.env.SEARCH_KEYWORD]
+			if (process.env.SEARCH_FILE_EXTENSION) {
+				filter.push(`filename:*.${process.env.SEARCH_FILE_EXTENSION}`);
+			}
+
+			let results = await searchInProject(project, filter.join(' '));
+			for (let k = 0; k < results.length; k++) {
+				let element = results[k];
+				console.log(`+ ${element.path}`);
+				element.data = element.data.replace("\t", "  ").split("\n");
+				searchResults[project.id].chunks.push(element);
+			}
+			fs.writeFileSync(resultFile, JSON.stringify(searchResults, null, 2));
+
 		}
 	}
 })();
